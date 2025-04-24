@@ -1,0 +1,351 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Sistema de Controle</title>
+  <style>
+    /* Reset e configuração básica */
+    body, html {
+      margin: 0;
+      padding: 0;
+      font-family: Arial, sans-serif;
+      height: 100%;
+      background: linear-gradient(135deg, #000033 30%, #000080 70%);
+      background-attachment: fixed;
+      background-size: cover;
+      overflow: auto; /* Permite rolagem */
+    }
+    section {
+      padding: 20px;
+    }
+    .card {
+      width: 190px;
+      height: 254px;
+      background: #07182E;
+      position: relative;
+      display: flex;
+      place-content: center;
+      place-items: center;
+      overflow: hidden;
+      border-radius: 20px;
+      cursor: pointer;
+      transition: transform 0.2s;
+    }
+    .card:hover {
+      transform: scale(1.05);
+    }
+    .card h2 {
+      z-index: 1;
+      color: white;
+      font-size: 2em;
+    }
+    .card::before {
+      content: '';
+      position: absolute;
+      width: 100px;
+      background-image: linear-gradient(180deg, rgb(0, 183, 255), rgb(255, 48, 255));
+      height: 130%;
+      animation: rotBGimg 3s linear infinite;
+      transition: all 0.2s linear;
+    }
+    @keyframes rotBGimg {
+      from {
+        transform: rotate(0deg);
+      }
+      to {
+        transform: rotate(360deg);
+      }
+    }
+    .card::after {
+      content: '';
+      position: absolute;
+      background: #07182E;
+      inset: 5px;
+      border-radius: 15px;
+    }
+    .card-container {
+      display: flex;
+      justify-content: center;
+      gap: 20px;
+      margin-top: 50px;
+    }
+    #mainSection {
+      text-align: center;
+      color: white;
+      text-shadow: 0 0 2px #fff, 0 0 4px #fff, 0 0 6px #0ff;
+      display: block;
+    }
+    input, select, button, video {
+      padding: 10px;
+      margin: 5px 0;
+      width: 100%;
+      border: 1px solid #ccc;
+      border-radius: 5px;
+      box-sizing: border-box;
+    }
+    button {
+      padding: 10px 20px;
+      text-transform: uppercase;
+      border-radius: 8px;
+      font-size: 17px;
+      font-weight: 500;
+      color: #ffffff80;
+      text-shadow: none;
+      background: transparent;
+      cursor: pointer;
+      box-shadow: transparent;
+      border: 1px solid #ffffff80;
+      transition: 0.5s ease;
+      user-select: none;
+    }
+    button:hover,
+    button:focus {
+      color: #ffffff;
+      background: #008cff;
+      border: 1px solid #008cff;
+      text-shadow: 0 0 2px #ffffff, 0 0 4px #ffffff, 0 0 6px #ffffff;
+      box-shadow: 0 0 2px #008cff, 0 0 4px #008cff, 0 0 6px #008cff,
+        0 0 8px #008cff;
+    }
+    .log {
+      background-color: #fff;
+      border: 1px solid #ddd;
+      margin-top: 10px;
+      padding: 10px;
+      border-radius: 5px;
+    }
+  </style>
+</head>
+<body>
+  <section id="mainSection">
+    <h2>Você deseja Registrar como</h2>
+    <div class="card-container">
+      <div class="card" onclick="mudarTela('Morador')">
+        <h2>Morador</h2>
+      </div>
+      <div class="card" onclick="mudarTela('Funcionário')">
+        <h2>Funcionário</h2>
+      </div>
+      <div class="card" onclick="mudarTela('Entrega')">
+        <h2>Entrega</h2>
+      </div>
+    </div>
+    <div id="categoriaFormContainer"></div>
+  </section>
+
+  <script>
+    document.addEventListener("DOMContentLoaded", function () {
+      document.getElementById("mainSection").style.display = "block";
+    });
+
+    function mudarTela(categoria) {
+      document.querySelector('.card-container').style.display = 'none';
+      const formHTML = `
+        <form id="${categoria.toLowerCase()}Form" style="position: relative;">
+          <h2>Registro de ${categoria}</h2>
+          <label for="${categoria}Nome">Nome:</label>
+          <input type="text" id="${categoria}Nome" name="${categoria}Nome" required>
+          
+          <label for="${categoria}CPF">CPF:</label>
+          <input type="text" id="${categoria}CPF" name="${categoria}CPF" required maxlength="11" onkeypress="return apenasNumeros(event)" oninput="validarCPF(this)">
+          
+          ${categoria === 'Morador' || categoria === 'Entrega' ? `
+          <label for="${categoria}Apto">Número do Apartamento:</label>
+          <input type="text" id="${categoria}Apto" name="${categoria}Apto" required>` : ''}
+          
+          ${categoria === 'Morador' ? `
+          <label for="${categoria}Bloco">Bloco:</label>
+          <input type="text" id="${categoria}Bloco" name="${categoria}Bloco" required>
+          <label for="${categoria}Placa">Placa do Carro:</label>
+          <input type="text" id="${categoria}Placa" name="${categoria}Placa" required oninput="validarPlaca(this)">
+          <label for="${categoria}Carro">Modelo do Veículo:</label>
+          <input type="text" id="${categoria}Carro" name="${categoria}Carro" required>
+          <label for="${categoria}FaceID">Face ID (Câmera):</label>
+          <video id="${categoria}Camera" autoplay playsinline></video>
+          <button type="button" onclick="capturarFace()">Capturar Face</button>` : ''}
+          
+          ${categoria === 'Funcionário' ? `
+          <label for="${categoria}Endereco">Endereço:</label>
+          <input type="text" id="${categoria}Endereco" name="${categoria}Endereco" required oninput="validarEndereco(this)">
+          <label for="${categoria}Placa">Placa do Veículo:</label>
+          <input type="text" id="${categoria}Placa" name="${categoria}Placa" required oninput="validarPlaca(this)">` : ''}
+          
+          ${categoria === 'Entrega' ? `
+          <label for="${categoria}LocalTrabalho">Local de Trabalho:</label>
+          <input type="text" id="${categoria}LocalTrabalho" name="${categoria}LocalTrabalho" required>
+          <label for="${categoria}Placa">Placa do Veículo:</label>
+          <input type="text" id="${categoria}Placa" name="${categoria}Placa" required oninput="validarPlaca(this)">` : ''}
+          
+          <label for="${categoria}Telefone">Número de Telefone:</label>
+          <input type="text" id="${categoria}Telefone" name="${categoria}Telefone" required maxlength="15" oninput="formatarTelefone(this)">
+          
+          <button id="registrarButton" type="button">Registrar</button>
+        </form>
+        <div id="log${categoria}" class="log">
+          <h2>Log de ${categoria}s</h2>
+          <p>Nenhum registro disponível.</p>
+        </div>
+        <button onclick="voltar()">Voltar</button>
+      `;
+      
+      document.getElementById("categoriaFormContainer").innerHTML = formHTML;
+      
+      if (categoria === "Morador") iniciarCamera();
+      
+      document.getElementById("registrarButton").addEventListener("click", function (e) {
+        registrarMovimento(categoria, 'registrado');
+      });
+    }
+
+    function iniciarCamera() {
+      const video = document.getElementById("MoradorCamera");
+      navigator.mediaDevices.getUserMedia({ video: true })
+        .then(stream => {
+          video.srcObject = stream;
+        })
+        .catch(error => {
+          alert("Erro ao acessar a câmera: " + error.message);
+        });
+    }
+
+    function capturarFace() {
+      const video = document.getElementById("MoradorCamera");
+      const canvas = document.createElement("canvas");
+      canvas.width = video.videoWidth;
+      canvas.height = video.videoHeight;
+      const contexto = canvas.getContext("2d");
+      contexto.drawImage(video, 0, 0, canvas.width, canvas.height);
+      const imagemCapturada = canvas.toDataURL("image/png");
+      console.log("Imagem capturada:", imagemCapturada);
+      alert("Face capturada com sucesso!");
+    }
+
+    function validarCPF(input) {
+      const cpf = input.value.replace(/\D/g, '');
+      if (cpf.length === 11) {
+        input.setCustomValidity('');
+      } else {
+        input.setCustomValidity('CPF deve ter 11 dígitos.');
+      }
+    }
+
+    function validarEndereco(input) {
+      const endereco = input.value.trim();
+      const palavras = endereco.split(/\s+/);
+      if (palavras.length >= 3) {
+        input.setCustomValidity('');
+      } else {
+        input.setCustomValidity('Endereço inválido. Deve conter pelo menos três palavras.');
+      }
+    }
+
+    function validarPlaca(input) {
+      const placa = input.value.toUpperCase();
+      const regexPlaca = /^[A-Z]{3}\d{4}$/;
+      if (regexPlaca.test(placa)) {
+        input.setCustomValidity('');
+      } else {
+        input.setCustomValidity('Placa inválida. Use o formato ABC1234.');
+      }
+    }
+
+    function formatarTelefone(campo) {
+      let telefone = campo.value.replace(/[^\d]/g, "");
+      if (telefone.length <= 2) {
+        campo.value = `(${telefone}`;
+      } else if (telefone.length <= 7) {
+        campo.value = `(${telefone.substring(0, 2)}) ${telefone.substring(2)}`;
+      } else {
+        campo.value = `(${telefone.substring(0, 2)}) ${telefone.substring(
+          2,
+          7
+        )}-${telefone.substring(7, 11)}`;
+      }
+    }
+
+    function apenasNumeros(e) {
+      const charCode = e.which || e.keyCode;
+      return charCode >= 48 && charCode <= 57;
+    }
+
+    function registrarMovimento(categoria, tipoMovimento) {
+      const formElements = {
+        nome: document.getElementById(`${categoria}Nome`).value,
+        cpf: document.getElementById(`${categoria}CPF`).value,
+        telefone: document.getElementById(`${categoria}Telefone}`).value,
+        apto: categoria === "Morador" || categoria === "Entrega" ? document.getElementById(`${categoria}Apto`).value : "",
+        bloco: categoria === "Morador" ? document.getElementById(`${categoria}Bloco`).value : "",
+        placa: document.getElementById(`${categoria}Placa`).value,
+        carro: categoria === "Morador" ? document.getElementById(`${categoria}Carro`).value : "",
+        endereco: categoria === "Funcionário" ? document.getElementById(`${categoria}Endereco`).value : "",
+        localTrabalho: categoria === "Entrega" ? document.getElementById(`${categoria}LocalTrabalho`).value : ""
+      };
+
+      // Validação dos campos
+      if (!formElements.nome || !formElements.cpf || !formElements.telefone ||
+          (categoria === "Morador" && (!formElements.apto || !formElements.bloco || !formElements.placa || !formElements.carro)) ||
+          (categoria === "Funcionário" && (!formElements.endereco || !formElements.placa)) ||
+          (categoria === "Entrega" && (!formElements.apto || !formElements.localTrabalho || !formElements.placa))) {
+        alert("Por favor, preencha todos os campos corretamente.");
+        return;
+      }
+
+      const cpfInput = document.getElementById(`${categoria}CPF`);
+      const placaInput = document.getElementById(`${categoria}Placa`);
+      const enderecoInput = document.getElementById(`${categoria}Endereco`);
+
+      if (cpfInput && cpfInput.validationMessage) {
+        alert(cpfInput.validationMessage);
+        return;
+      }
+
+      if (placaInput && placaInput.validationMessage) {
+        alert(placaInput.validationMessage);
+        return;
+      }
+
+      if (enderecoInput && enderecoInput.validationMessage) {
+        alert(enderecoInput.validationMessage);
+        return;
+      }
+
+      const hora = new Date().toLocaleString();
+      const logMensagem = `
+          <p><strong>${formElements.nome}</strong> 
+          ${categoria === "Morador" ? `(Apartamento: ${formElements.apto}, Bloco: ${formElements.bloco}, Placa: ${formElements.placa}, Veículo: ${formElements.carro})` : ""}
+          ${categoria === "Funcionário" ? `(Endereço: ${formElements.endereco}, Placa: ${formElements.placa})` : ""}
+          ${categoria === "Entrega" ? `(Apartamento: ${formElements.apto}, Local de Trabalho: ${formElements.localTrabalho}, Placa: ${formElements.placa})` : ""}
+          (CPF: ${formElements.cpf}, Telefone: ${formElements.telefone}) registrou ${tipoMovimento} às ${hora}.</p>
+      `;
+      document.getElementById(`log${categoria}`).innerHTML += logMensagem;
+      alert(`${tipoMovimento} com sucesso!`);
+    }
+
+    function voltar() {
+      document.querySelector('.card-container').style.display = 'flex';
+      document.getElementById("categoriaFormContainer").innerHTML = '';
+    }
+
+    function allRequiredFilled(form) {
+      const requiredInputs = form.querySelectorAll("input[required]");
+      for (const input of requiredInputs) {
+        if (input.value.trim() === "") {
+          return false;
+        }
+      }
+      return true;
+    }
+
+    function monitorInputs(form, button, isLogin = false) {
+      form.addEventListener("input", function () {
+        if (allRequiredFilled(form)) {
+          button.disabled = false;
+        } else {
+          button.disabled = true;
+        }
+      });
+    }
+  </script>
+</body>
+</html>

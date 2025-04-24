@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Sistema de Controle</title>
+  <link rel="stylesheet" href="css/style.css" />
+</head>
+<body>
+  <section id="mainSection">
+    <h2>Você deseja Registrar como</h2>
+    <div class="card-container">
+      <div class="card" onclick="mudarTela('Morador')">
+        <h2>Morador</h2>
+      </div>
+      <div class="card" onclick="mudarTela('Funcionário')">
+        <h2>Funcionário</h2>
+      </div>
+      <div class="card" onclick="mudarTela('Entrega')">
+        <h2>Entrega</h2>
+      </div>
+    </div>
+    <div id="categoriaFormContainer"></div>
+  </section>
+  <script src="js/script.js"></script>
+</body>
+</html>

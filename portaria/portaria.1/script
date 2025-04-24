@@ -1,0 +1,193 @@
+    // Função para efetuar o login
+    function efetuarLogin() {
+        const usuario = document.getElementById("username").value;
+        const senha = document.getElementById("password").value;
+//
+        if (usuario === "admin" && senha === "123") {
+          document.getElementById("loginSection").style.display = "none";
+          document.getElementById("mainSection").style.display = "block";
+        } else {
+          alert("Usuário ou senha incorretos. Tente novamente.");
+        }
+      }
+
+      function mudarTela() {
+        const categoria = document.getElementById("categoria").value;
+        const formHTML = `
+          <form id="${categoria.toLowerCase()}Form" style="position: relative;">
+            <h2>Registro de ${categoria}</h2>
+            <label for="${categoria}Nome">Nome:</label>
+            <input type="text" id="${categoria}Nome" name="${categoria}Nome" required>
+            
+            <label for="${categoria}CPF">CPF:</label>
+            <input type="text" id="${categoria}CPF" name="${categoria}CPF" required maxlength="14" onkeypress="return apenasNumeros(event)">
+            
+            ${categoria === 'Morador' || categoria === 'Entrega' ? `
+            <label for="${categoria}Apto">Número do Apartamento:</label>
+            <input type="text" id="${categoria}Apto" name="${categoria}Apto" required>` : ''}
+            
+            ${categoria === 'Morador' ? `
+            <label for="${categoria}Bloco">Bloco:</label>
+            <input type="text" id="${categoria}Bloco" name="${categoria}Bloco" required>
+            <label for="${categoria}Placa">Placa do Carro:</label>
+            <input type="text" id="${categoria}Placa" name="${categoria}Placa" required>
+            <label for="${categoria}Carro">Modelo do Veículo:</label>
+            <input type="text" id="${categoria}Carro" name="${categoria}Carro" required>
+            <label for="${categoria}FaceID">Face ID (Câmera):</label>
+            <video id="${categoria}Camera" autoplay playsinline></video>
+            <button type="button" onclick="capturarFace()">Capturar Face</button>` : ''}
+            
+            ${categoria === 'Funcionário' ? `
+            <label for="${categoria}Endereco">Endereço:</label>
+            <input type="text" id="${categoria}Endereco" name="${categoria}Endereco" required>
+            <label for="${categoria}Placa">Placa do Veículo:</label>
+            <input type="text" id="${categoria}Placa" name="${categoria}Placa" required>` : ''}
+            
+            ${categoria === 'Entrega' ? `
+            <label for="${categoria}LocalTrabalho">Local de Trabalho:</label>
+            <input type="text" id="${categoria}LocalTrabalho}" name="${categoria}LocalTrabalho" required>
+            <label for="${categoria}Placa">Placa do Veículo:</label>
+            <input type="text" id="${categoria}Placa" name="${categoria}Placa" required>` : ''}
+            
+            <label for="${categoria}Telefone">Número de Telefone:</label>
+            <input type="text" id="${categoria}Telefone" name="${categoria}Telefone" required maxlength="15" oninput="formatarTelefone(this)">
+            
+            <button id="registrarButton" type="button" onclick="registrarMovimento('${categoria}', 'registrado')">Registrar</button>
+          </form>
+          <div id="log${categoria}" class="log">
+            <h2>Log de ${categoria}s</h2>
+            <p>Nenhum registro disponível.</p>
+          </div>
+          <button onclick="voltar()">Voltar</button>
+        `;
+        
+        document.getElementById("mainSection").innerHTML = formHTML;
+        
+        if (categoria === "Morador") iniciarCamera();
+        
+        const registrarButton = document.getElementById("registrarButton");
+        const form = document.getElementById(`${categoria.toLowerCase()}Form`);
+        registrarButton.addEventListener("click", function (e) {
+          if (!allRequiredFilled(form)) {
+            alert("Por favor, preencha todos os campos corretamente.");
+          } else {
+            registrarMovimento(categoria, 'registrado');
+          }
+        });
+        monitorInputs(form, registrarButton);
+      }
+  
+      function iniciarCamera() {
+        const video = document.getElementById("MoradorCamera");
+        navigator.mediaDevices.getUserMedia({ video: true })
+          .then(stream => {
+            video.srcObject = stream;
+          })
+          .catch(error => {
+            alert("Erro ao acessar a câmera: " + error.message);
+          });
+      }
+  
+      function capturarFace() {
+        const video = document.getElementById("MoradorCamera");
+        const canvas = document.createElement("canvas");
+        canvas.width = video.videoWidth;
+        canvas.height = video.videoHeight;
+        const contexto = canvas.getContext("2d");
+        contexto.drawImage(video, 0, 0, canvas.width, canvas.height);
+        const imagemCapturada = canvas.toDataURL("image/png");
+        console.log("Imagem capturada:", imagemCapturada);
+        alert("Face capturada com sucesso!");
+      }
+  
+      function registrarMovimento(categoria, tipoMovimento) {
+        const formElements = {
+          nome: document.getElementById(`${categoria}Nome`).value,
+          cpf: document.getElementById(`${categoria}CPF`).value,
+          telefone: document.getElementById(`${categoria}Telefone}`).value,
+          apto: categoria === "Morador" || categoria === "Entrega" ? document.getElementById(`${categoria}Apto}`).value : "",
+          bloco: categoria === "Morador" ? document.getElementById(`${categoria}Bloco}`).value : "",
+          placa: document.getElementById(`${categoria}Placa}`).value,
+          carro: categoria === "Morador" ? document.getElementById(`${categoria}Carro}`).value : "",
+          endereco: categoria === "Funcionário" ? document.getElementById(`${categoria}Endereco}`).value : "",
+          localTrabalho: categoria === "Entrega" ? document.getElementById(`${categoria}LocalTrabalho}`).value : ""
+        };
+        
+        if (
+          !formElements.nome ||
+          !formElements.cpf ||
+          !formElements.telefone ||
+          (categoria === "Morador" &&
+            (!formElements.apto ||
+             !formElements.bloco ||
+             !formElements.placa ||
+             !formElements.carro)) ||
+          (categoria === "Funcionário" && (!formElements.endereco || !formElements.placa)) ||
+          (categoria === "Entrega" &&
+            (!formElements.apto || !formElements.localTrabalho || !formElements.placa))
+        ) {
+          alert("Por favor, preencha todos os campos corretamente.");
+          return;
+        }
+        
+        const hora = new Date().toLocaleString();
+        const logMensagem = `
+            <p><strong>${formElements.nome}</strong> 
+            ${categoria === "Morador" ? `(Apartamento: ${formElements.apto}, Bloco: ${formElements.bloco}, Placa: ${formElements.placa}, Veículo: ${formElements.carro})` : ""}
+            ${categoria === "Funcionário" ? `(Endereço: ${formElements.endereco}, Placa: ${formElements.placa})` : ""}
+            ${categoria === "Entrega" ? `(Apartamento: ${formElements.apto}, Local de Trabalho: ${formElements.localTrabalho}, Placa: ${formElements.placa})` : ""}
+            (CPF: ${formElements.cpf}, Telefone: ${formElements.telefone}) registrou ${tipoMovimento} às ${hora}.</p>
+        `;
+        document.getElementById(`log${categoria}`).innerHTML += logMensagem;
+        alert(`${tipoMovimento} com sucesso!`);
+      }
+  
+      function formatarTelefone(campo) {
+        let telefone = campo.value.replace(/[^\d]/g, "");
+        if (telefone.length <= 2) {
+          campo.value = `(${telefone}`;
+        } else if (telefone.length <= 7) {
+          campo.value = `(${telefone.substring(0, 2)}) ${telefone.substring(2)}`;
+        } else {
+          campo.value = `(${telefone.substring(0, 2)}) ${telefone.substring(
+            2,
+            7
+          )}-${telefone.substring(7, 11)}`;
+        }
+      }
+  
+      function apenasNumeros(e) {
+        const charCode = e.which || e.keyCode;
+        return charCode >= 48 && charCode <= 57;
+      }
+  
+      function voltar() {
+        window.location.reload();
+      }
+  
+      function allRequiredFilled(form) {
+        const requiredInputs = form.querySelectorAll("input[required]");
+        for (const input of requiredInputs) {
+          if (input.value.trim() === "") {
+            return false;
+          }
+        }
+        return true;
+      }
+  
+      function monitorInputs(form, button, isLogin = false) {
+        form.addEventListener("input", function () {
+          if (allRequiredFilled(form)) {
+            button.disabled = false;
+          } else {
+            button.disabled = true;
+          }
+        });
+      }
+  
+      document.addEventListener("DOMContentLoaded", function () {
+        const loginForm = document.getElementById("loginForm");
+        const loginButton = document.getElementById("loginButton");
+  
+        monitorInputs(loginForm, loginButton, true);
+      });

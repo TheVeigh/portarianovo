@@ -1,0 +1,78 @@
+body, html {
+    margin: 0;
+    padding: 0;
+    font-family: Arial, sans-serif;
+    height: 100%;
+    background: linear-gradient(135deg, #000033 30%, #000080 70%);
+    background-attachment: fixed;
+    background-size: cover;
+    overflow: hidden; /* Impede a rolagem */
+    color: #000000; /* Alterado para preto */
+}
+section {
+    padding: 20px;
+}
+input, select, button, video {
+    padding: 10px;
+    margin: 5px 0;
+    width: 100%;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    box-sizing: border-box;
+    color: #000000; /* Alterado para preto para visibilidade */
+    background-color: #ffffff; /* Fundo branco para contraste */
+}
+button {
+    padding: 10px 20px;
+    text-transform: uppercase;
+    border-radius: 8px;
+    font-size: 17px;
+    font-weight: 500;
+    color: #ffffff80;
+    text-shadow: none;
+    background: transparent;
+    cursor: pointer;
+    box-shadow: transparent;
+    border: 1px solid #ffffff80;
+    transition: 0.5s ease;
+    user-select: none;
+}
+button:hover {
+    background-color: #add8e6; /* Fundo azul claro */
+    color: #000000; /* Texto preto */
+    border: 1px solid #000000; /* Borda preta */
+    transition: 0.3s ease; /* Suaviza a transição */
+}
+
+.log {
+    background-color: #fff;
+    border: 1px solid #ddd;
+    margin-top: 10px;
+    padding: 10px;
+    border-radius: 5px;
+}
+/* Centralização da tela de login */
+#loginSection {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+    color: white; /* Texto branco */
+    text-shadow: 0 0 5px #fff, 0 0 10px #fff, 0 0 15px #fff, 0 0 20px #0ff, 0 0 30px #0ff, 0 0 40px #0ff, 0 0 55px #0ff, 0 0 75px #0ff; /* Efeito neon */
+}
+/* Formulário de login com estilo minimalista */
+#loginForm {
+    width: 300px;
+    padding: 20px;
+    background-color: #1E1E1E; /* Fundo escuro */
+    border: 1px solid #ddd;
+    border-radius: 5px;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+    position: relative;
+    overflow: visible;
+    color: white; /* Texto branco */
+}
+/* Oculta a seção principal até o login */
+#mainSection {
+    display: none;
+}
